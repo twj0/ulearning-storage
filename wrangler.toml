@@ -3,6 +3,9 @@ compatibility_date = "2024-01-01"
 
 pages_build_output_dir = "dist"
 
+[build]
+command = "npm install && npm run build"
+
 # 绑定配置在 Cloudflare Dashboard 中完成
 # 部署后：Settings → Functions → Bindings
 # 1. 添加 D1 数据库，Variable name: DB
