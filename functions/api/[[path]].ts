@@ -82,7 +82,19 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     // 文件上传接口
     if (url.pathname === '/api/files/upload' && request.method === 'POST') {
       // 使用环境变量自动登录获取 token
-      const authToken = await getAuthToken(env)
+      let authToken: string
+      try {
+        authToken = await getAuthToken(env)
+        console.log('Got auth token:', authToken.substring(0, 8) + '...')
+      } catch (error) {
+        console.error('Failed to get auth token:', error)
+        return new Response(JSON.stringify({
+          error: '获取认证令牌失败: ' + (error instanceof Error ? error.message : String(error))
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
 
       const formData = await request.formData()
       const files = formData.getAll('files') as File[]
@@ -92,8 +104,10 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       for (const file of files) {
         // 1. 构建远程路径
         const remotePath = UlearningAPI.buildRemotePath(file.name)
+        console.log('Remote path:', remotePath)
 
         // 2. 获取上传令牌
+        console.log('Getting upload token with auth:', authToken.substring(0, 8) + '...')
         const tokenInfo = await UlearningAPI.getUploadToken(authToken, remotePath)
 
         // 3. 上传到华为云 OBS
