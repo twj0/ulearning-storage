@@ -22,59 +22,32 @@ export default function FileUpload({ token, onClose, onComplete }: FileUploadPro
     setProgress(0)
 
     try {
-      // 1. 获取上传令牌
-      const formData = new FormData()
-      acceptedFiles.forEach(file => formData.append('files', file))
+      const files = await Promise.all(
+        acceptedFiles.map(async (file) => {
+          const buffer = await file.arrayBuffer()
+          return {
+            name: file.name,
+            size: file.size,
+            content: btoa(String.fromCharCode(...new Uint8Array(buffer)))
+          }
+        })
+      )
 
-      const tokenResponse = await fetch('/api/files/upload', {
+      const response = await fetch('/api/upload', {
         method: 'POST',
-        body: formData
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ files })
       })
 
-      if (!tokenResponse.ok) throw new Error('获取上传令牌失败')
-
-      const { uploadTokens } = await tokenResponse.json()
-
-      // 2. 上传每个文件到OBS
-      for (let i = 0; i < uploadTokens.length; i++) {
-        const { fileName, remotePath, tokenInfo, authToken, courseId } = uploadTokens[i]
-        const file = acceptedFiles[i]
-
-        // 上传到OBS
-        const obsUrl = `https://${tokenInfo.bucket}.${tokenInfo.endpoint}/${remotePath}`
-        const obsResponse = await fetch(obsUrl, {
-          method: 'PUT',
-          headers: {
-            'x-amz-date': new Date().toISOString().replace(/[:-]|\.\d{3}/g, ''),
-            'x-amz-security-token': tokenInfo.securitytoken,
-            'x-amz-content-sha256': 'UNSIGNED-PAYLOAD'
-          },
-          body: file
-        })
-
-        if (!obsResponse.ok) throw new Error(`上传到OBS失败: ${obsResponse.status}`)
-
-        const fileUrl = `${tokenInfo.domain}/${remotePath}`
-
-        // 3. 通知后端上传完成
-        const completeResponse = await fetch('/api/files/complete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            authToken,
-            fileName,
-            fileUrl,
-            fileSize: file.size,
-            courseId
-          })
-        })
-
-        if (!completeResponse.ok) throw new Error('通知上传完成失败')
-
-        setProgress(Math.round(((i + 1) / uploadTokens.length) * 100))
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || '上传失败')
       }
 
+      const { files: uploaded } = await response.json()
+      setProgress(100)
       setSuccess(true)
+
       setTimeout(() => {
         onComplete()
       }, 1500)
@@ -82,7 +55,7 @@ export default function FileUpload({ token, onClose, onComplete }: FileUploadPro
       setError(err instanceof Error ? err.message : '上传失败')
       setUploading(false)
     }
-  }, [token, onComplete])
+  }, [onComplete])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
 
