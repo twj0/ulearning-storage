@@ -93,7 +93,7 @@
 
 > **注意：** 本项目使用 Cloudflare Workers 绑定，无需 `.env` 文件。所有配置通过 `wrangler.toml` 管理。详见 [CLOUDFLARE_CONFIG.md](CLOUDFLARE_CONFIG.md)
 
-## 快速开始
+## 本地
 
 ### 方式一：自动配置（推荐）
 
