@@ -79,74 +79,61 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       })
     }
 
-    // 文件上传接口
+    // 文件上传接口 - 返回上传令牌给前端
     if (url.pathname === '/api/files/upload' && request.method === 'POST') {
-      // 使用环境变量自动登录获取 token
-      let authToken: string
-      try {
-        authToken = await getAuthToken(env)
-        console.log('Got auth token:', authToken.substring(0, 8) + '...')
-      } catch (error) {
-        console.error('Failed to get auth token:', error)
-        return new Response(JSON.stringify({
-          error: '获取认证令牌失败: ' + (error instanceof Error ? error.message : String(error))
-        }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
-      }
-
+      const authToken = await getAuthToken(env)
       const formData = await request.formData()
       const files = formData.getAll('files') as File[]
       const courseId = formData.get('courseId') as string | null || env.DEFAULT_COURSE_ID
-      const uploaded = []
 
+      const uploadTokens = []
       for (const file of files) {
-        // 1. 构建远程路径
         const remotePath = UlearningAPI.buildRemotePath(file.name)
-        console.log('Remote path:', remotePath)
-
-        // 2. 获取上传令牌
-        console.log('Getting upload token with auth:', authToken.substring(0, 8) + '...')
         const tokenInfo = await UlearningAPI.getUploadToken(authToken, remotePath)
 
-        // 3. 上传到华为云 OBS
-        const fileUrl = await uploadToOBS(file, tokenInfo, remotePath)
-
-        // 4. 通知优学院上传完成
-        const contentId = await UlearningAPI.notifyUploadComplete(
+        uploadTokens.push({
+          fileName: file.name,
+          remotePath,
+          tokenInfo,
           authToken,
-          file.name,
-          fileUrl,
-          file.size
-        )
-
-        // 5. 如果提供了 courseId，自动发布到课程
-        if (courseId) {
-          await UlearningAPI.publishToCourse(authToken, contentId, courseId)
-        }
-
-        // 6. 保存文件元数据到 D1
-        await env.DB.prepare(
-          'INSERT INTO files (id, name, size, type, url, content_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
-        ).bind(
-          crypto.randomUUID(),
-          file.name,
-          file.size,
-          file.type,
-          fileUrl,
-          contentId,
-          new Date().toISOString()
-        ).run()
-
-        uploaded.push({
-          name: file.name,
-          url: fileUrl,
-          contentId
+          courseId
         })
       }
 
-      return new Response(JSON.stringify({ files: uploaded }), {
+      return new Response(JSON.stringify({ uploadTokens }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // 通知上传完成接口
+    if (url.pathname === '/api/files/complete' && request.method === 'POST') {
+      const { authToken, fileName, fileUrl, fileSize, courseId } = await request.json() as {
+        authToken: string
+        fileName: string
+        fileUrl: string
+        fileSize: number
+        courseId?: string
+      }
+
+      const contentId = await UlearningAPI.notifyUploadComplete(authToken, fileName, fileUrl, fileSize)
+
+      if (courseId) {
+        await UlearningAPI.publishToCourse(authToken, contentId, courseId)
+      }
+
+      await env.DB.prepare(
+        'INSERT INTO files (id, name, size, type, url, content_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
+      ).bind(
+        crypto.randomUUID(),
+        fileName,
+        fileSize,
+        '',
+        fileUrl,
+        contentId,
+        new Date().toISOString()
+      ).run()
+
+      return new Response(JSON.stringify({ contentId, fileUrl }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
