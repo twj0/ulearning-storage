@@ -71,11 +71,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
     // 文件上传接口
     if (url.pathname === '/api/files/upload' && request.method === 'POST') {
-      // 优先使用请求头中的 token，否则使用环境变量自动登录
-      let authToken = request.headers.get('Authorization')?.replace('Bearer ', '')
-      if (!authToken) {
-        authToken = await getAuthToken(env)
-      }
+      // 使用环境变量自动登录获取 token
+      const authToken = await getAuthToken(env)
 
       const formData = await request.formData()
       const files = formData.getAll('files') as File[]
