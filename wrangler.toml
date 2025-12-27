@@ -3,11 +3,7 @@ compatibility_date = "2024-01-01"
 
 pages_build_output_dir = "dist"
 
-# KV namespace for sessions (auto-provisioned on deploy)
-[[kv_namespaces]]
-binding = "KV"
-
-# D1 database for file metadata (auto-provisioned on deploy)
-[[d1_databases]]
-binding = "DB"
-database_name = "storage_db"
+# 绑定配置在 Cloudflare Dashboard 中完成
+# 部署后：Settings → Functions → Bindings
+# 1. 添加 D1 数据库，Variable name: DB
+# 2. 添加 KV 命名空间，Variable name: KV
