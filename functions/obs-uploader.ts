@@ -104,8 +104,7 @@ export async function uploadToOBS(
     method: 'PUT',
     headers: {
       ...headers,
-      'Authorization': authorization,
-      'Content-Type': file.type || 'application/octet-stream'
+      'Authorization': authorization
     },
     body: file
   })

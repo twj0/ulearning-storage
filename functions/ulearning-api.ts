@@ -49,14 +49,16 @@ export async function getUploadToken(authToken: string, remotePath: string): Pro
 
   const response = await fetch(url.toString(), {
     headers: {
-      Authorization: authToken,
-      Origin: 'https://courseweb.ulearning.cn',
-      Referer: 'https://courseweb.ulearning.cn/'
+      'Authorization': authToken,
+      'Origin': 'https://courseweb.ulearning.cn',
+      'Referer': 'https://courseweb.ulearning.cn/',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
     }
   })
 
   if (!response.ok) {
-    throw new Error(`获取上传令牌失败: ${response.status}`)
+    const errorText = await response.text()
+    throw new Error(`获取上传令牌失败: ${response.status} - ${errorText}`)
   }
 
   const data: UploadTokenResponse = await response.json()

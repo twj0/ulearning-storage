@@ -32,3 +32,5 @@ node_modules/
 dist/
 .wrangler/
 .dev.vars
+test*.*
+*.txt
