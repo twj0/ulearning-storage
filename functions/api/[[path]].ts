@@ -169,8 +169,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
   } catch (error) {
     console.error('API Error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Internal Server Error'
+    const errorStack = error instanceof Error ? error.stack : undefined
+    console.error('Error details:', { message: errorMessage, stack: errorStack })
     return new Response(JSON.stringify({
-      error: error instanceof Error ? error.message : 'Internal Server Error'
+      error: errorMessage
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
