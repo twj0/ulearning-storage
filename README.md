@@ -308,13 +308,6 @@ uleaning-storage/
 └── README.md               # 本文件
 ```
 
-## 许可证
-
-MIT License
-
-## 贡献
-
-欢迎提交 Issue 和 Pull Request！
 
 ## 相关链接
 
@@ -322,3 +315,5 @@ MIT License
 - [Cloudflare R2 文档](https://developers.cloudflare.com/r2/)
 - [Cloudflare D1 文档](https://developers.cloudflare.com/d1/)
 - [Wrangler CLI 文档](https://developers.cloudflare.com/workers/wrangler/)
+
+> claudecode may make mistakes, so double-check outputs. 
