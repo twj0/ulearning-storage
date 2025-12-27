@@ -12,7 +12,7 @@
 
 ### 第 2 步：部署到 Cloudflare
 
-1. 访问 [Cloudflare Pages](https://dash.cloudflare.com/pages)
+1. 访问 [Cloudflare Pages](https://dash.cloudflare.com)
 2. 点击 **Create a project** → **Connect to Git**
 3. 选择你刚才 Fork 的仓库 `ulearning-storage`
 4. 构建设置会自动识别，直接点击 **Save and Deploy**
