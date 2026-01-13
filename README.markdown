@@ -1,7 +1,7 @@
 
 # Ulearning Cloud Drive
 
-[中文](./readme-zhCN.md) | **English**
+[中文](./README-zhCN.md) | **English**
 
 A free personal cloud drive built utilizing the Huawei Cloud OBS storage space provided by the Ulearning platform. It supports file uploads and functions as an image hosting service.
 
