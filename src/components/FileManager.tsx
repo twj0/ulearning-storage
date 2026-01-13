@@ -54,16 +54,12 @@ export default function FileManager({ token, onLogout }: FileManagerProps) {
               <FiFolder /> 课件
             </button>
 
-            <button
-              onClick={() => setViewMode('gallery')}
-              className={`px-4 py-2 rounded-lg flex items-center gap-2 transition ${
-                viewMode === 'gallery'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+            <a
+              href="/imgbed"
+              className="px-4 py-2 rounded-lg flex items-center gap-2 transition bg-gray-100 text-gray-700 hover:bg-gray-200"
             >
               <FiImage /> 图床
-            </button>
+            </a>
 
             <button
               onClick={() => setShowUpload(true)}

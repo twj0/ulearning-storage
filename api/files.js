@@ -14,9 +14,18 @@ export default async function handler(req, res) {
     const authToken = await getAuthToken()
 
     if (req.method === 'GET') {
-      const { page = 1, pageSize = 100 } = req.query
+      const { page = 1, pageSize = 100, parentId = 0, type } = req.query
       const data = await getFileList(authToken, page, pageSize)
-      return res.status(200).json(data)
+      
+      // 过滤图片类型
+      let filteredList = data.list || []
+      if (type === 'image') {
+        filteredList = filteredList.filter(item => 
+          item.mimeType && item.mimeType.startsWith('image/')
+        )
+      }
+      
+      return res.status(200).json({ ...data, list: filteredList })
     }
 
     if (req.method === 'DELETE') {

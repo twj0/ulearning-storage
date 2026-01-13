@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import FileManager from './components/FileManager'
 import AdminPanel from './components/AdminPanel'
+import ImgBed from './components/ImgBed'
 
 function App() {
   return (
@@ -9,6 +10,7 @@ function App() {
         <Routes>
           <Route path="/" element={<FileManager token="public" onLogout={() => {}} />} />
           <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/imgbed" element={<ImgBed />} />
         </Routes>
       </div>
     </Router>
