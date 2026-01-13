@@ -1,25 +1,6 @@
-import { login, getUploadToken, notifyUploadComplete, publishToCourse, buildRemotePath } from './ulearning-api.js'
+import { getUploadToken, notifyUploadComplete, publishToCourse, buildRemotePath } from './ulearning-api.js'
 import { uploadToOBS } from './obs-uploader.js'
-
-let cachedToken = null
-let tokenExpiry = 0
-
-async function getAuthToken(forceRefresh = false) {
-  if (!forceRefresh && cachedToken && Date.now() < tokenExpiry) {
-    return cachedToken
-  }
-
-  const username = process.env.ULEARNING_USERNAME
-  const password = process.env.ULEARNING_PASSWORD
-
-  if (!username || !password) {
-    throw new Error('未配置 ULEARNING_USERNAME 或 ULEARNING_PASSWORD')
-  }
-
-  cachedToken = await login(username, password)
-  tokenExpiry = Date.now() + 12 * 60 * 60 * 1000 // 12小时
-  return cachedToken
-}
+import { getAuthToken } from './lib/auth.js'
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')

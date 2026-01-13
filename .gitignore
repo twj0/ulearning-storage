@@ -34,3 +34,5 @@ dist/
 .dev.vars
 test*.*
 *.txt
+.vercel
+*.md
