@@ -6,9 +6,12 @@ interface FileUploadProps {
   token: string
   onClose: () => void
   onComplete: () => void
+  endpoint?: string
+  requestHeaders?: Record<string, string>
+  extraBody?: Record<string, unknown>
 }
 
-export default function FileUpload({ token, onClose, onComplete }: FileUploadProps) {
+export default function FileUpload({ token: _token, onClose, onComplete, endpoint = '/api/upload', requestHeaders, extraBody }: FileUploadProps) {
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState('')
@@ -33,10 +36,10 @@ export default function FileUpload({ token, onClose, onComplete }: FileUploadPro
         })
       )
 
-      const response = await fetch('/api/upload', {
+      const response = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ files })
+        headers: { 'Content-Type': 'application/json', ...(requestHeaders || {}) },
+        body: JSON.stringify({ files, ...(extraBody || {}) })
       })
 
       if (!response.ok) {
@@ -44,7 +47,7 @@ export default function FileUpload({ token, onClose, onComplete }: FileUploadPro
         throw new Error(error.error || '上传失败')
       }
 
-      const { files: uploaded } = await response.json()
+      await response.json()
       setProgress(100)
       setSuccess(true)
 
@@ -55,7 +58,7 @@ export default function FileUpload({ token, onClose, onComplete }: FileUploadPro
       setError(err instanceof Error ? err.message : '上传失败')
       setUploading(false)
     }
-  }, [onComplete])
+  }, [endpoint, extraBody, onComplete, requestHeaders])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
 

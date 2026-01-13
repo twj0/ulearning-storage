@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { FiFolder, FiFile, FiFolderPlus, FiTrash2, FiMove, FiChevronRight, FiHome, FiRefreshCw } from 'react-icons/fi'
+import { FiFolder, FiFile, FiFolderPlus, FiTrash2, FiMove, FiChevronRight, FiHome, FiRefreshCw, FiUpload } from 'react-icons/fi'
+import FileUpload from './FileUpload'
 
 interface Course {
   id: number
@@ -27,11 +28,15 @@ export default function CourseFolders({ refreshKey }: CourseFoldersProps) {
   const [contents, setContents] = useState<ContentItem[]>([])
   const [currentPath, setCurrentPath] = useState<{ id: number; name: string }[]>([])
   const [loading, setLoading] = useState(false)
+  const [coursePassword, setCoursePassword] = useState('')
   const [newFolderName, setNewFolderName] = useState('')
   const [showNewFolder, setShowNewFolder] = useState(false)
   const [selectedItems, setSelectedItems] = useState<number[]>([])
   const [showMoveDialog, setShowMoveDialog] = useState(false)
   const [directories, setDirectories] = useState<any[]>([])
+  const [showUpload, setShowUpload] = useState(false)
+
+  const canWrite = coursePassword.trim().length > 0
 
   // 获取课程列表
   useEffect(() => {
@@ -43,6 +48,7 @@ export default function CourseFolders({ refreshKey }: CourseFoldersProps) {
     if (selectedCourse) {
       fetchContents(0)
       fetchDirectories()
+      setCoursePassword('')
     }
   }, [selectedCourse, refreshKey])
 
@@ -50,9 +56,10 @@ export default function CourseFolders({ refreshKey }: CourseFoldersProps) {
     try {
       const res = await fetch('/api/course-folders?action=courses')
       const data = await res.json()
-      setCourses(data.courseList || [])
-      if (data.courseList?.length > 0) {
-        setSelectedCourse(data.courseList[0])
+      const courseList = data.courseList || data.result?.courseList || []
+      setCourses(courseList)
+      if (courseList?.length > 0) {
+        setSelectedCourse(courseList[0])
       }
     } catch (err) {
       console.error('获取课程列表失败:', err)
@@ -111,7 +118,7 @@ export default function CourseFolders({ refreshKey }: CourseFoldersProps) {
     try {
       const res = await fetch('/api/course-folders?action=create-folder', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Course-Password': coursePassword },
         body: JSON.stringify({
           courseId: selectedCourse.id,
           name: newFolderName.trim(),
@@ -123,6 +130,9 @@ export default function CourseFolders({ refreshKey }: CourseFoldersProps) {
         setShowNewFolder(false)
         fetchContents(getCurrentParentId())
         fetchDirectories()
+      } else {
+        const data = await res.json().catch(() => ({}))
+        alert(data.error || '创建文件夹失败')
       }
     } catch (err) {
       console.error('创建文件夹失败:', err)
@@ -130,18 +140,22 @@ export default function CourseFolders({ refreshKey }: CourseFoldersProps) {
   }
 
   const handleDelete = async () => {
+    if (!selectedCourse) return
     if (selectedItems.length === 0) return
     if (!confirm(`确定删除选中的 ${selectedItems.length} 个项目？`)) return
     try {
       const res = await fetch('/api/course-folders', {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contentIds: selectedItems })
+        headers: { 'Content-Type': 'application/json', 'X-Course-Password': coursePassword },
+        body: JSON.stringify({ courseId: selectedCourse.id, contentIds: selectedItems })
       })
       if (res.ok) {
         setSelectedItems([])
         fetchContents(getCurrentParentId())
         fetchDirectories()
+      } else {
+        const data = await res.json().catch(() => ({}))
+        alert(data.error || '删除失败')
       }
     } catch (err) {
       console.error('删除失败:', err)
@@ -153,7 +167,7 @@ export default function CourseFolders({ refreshKey }: CourseFoldersProps) {
     try {
       const res = await fetch('/api/course-folders?action=move', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Course-Password': coursePassword },
         body: JSON.stringify({
           courseId: selectedCourse.id,
           contentIds: selectedItems,
@@ -165,6 +179,9 @@ export default function CourseFolders({ refreshKey }: CourseFoldersProps) {
         setShowMoveDialog(false)
         fetchContents(getCurrentParentId())
         fetchDirectories()
+      } else {
+        const data = await res.json().catch(() => ({}))
+        alert(data.error || '移动失败')
       }
     } catch (err) {
       console.error('移动失败:', err)
@@ -211,14 +228,33 @@ export default function CourseFolders({ refreshKey }: CourseFoldersProps) {
           ))}
         </select>
 
-        <button
-          onClick={() => setShowNewFolder(true)}
-          className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-        >
-          <FiFolderPlus /> 新建文件夹
-        </button>
+        <input
+          type="password"
+          value={coursePassword}
+          onChange={e => setCoursePassword(e.target.value)}
+          placeholder="课程口令（可选）"
+          className="px-3 py-2 border rounded-lg"
+        />
 
-        {selectedItems.length > 0 && (
+        {canWrite && (
+          <button
+            onClick={() => setShowNewFolder(true)}
+            className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+          >
+            <FiFolderPlus /> 新建文件夹
+          </button>
+        )}
+
+        {canWrite && (
+          <button
+            onClick={() => setShowUpload(true)}
+            className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+          >
+            <FiUpload /> 上传
+          </button>
+        )}
+
+        {canWrite && selectedItems.length > 0 && (
           <>
             <button
               onClick={() => setShowMoveDialog(true)}
@@ -275,19 +311,33 @@ export default function CourseFolders({ refreshKey }: CourseFoldersProps) {
             {contents.map(item => (
               <div
                 key={item.id}
-                onClick={() => item.type === 0 ? handleFolderClick(item) : toggleSelect(item.id)}
+                onClick={() => {
+                  if (item.type === 0) {
+                    handleFolderClick(item)
+                    return
+                  }
+
+                  if (!canWrite) {
+                    if (item.location) window.open(item.location, '_blank')
+                    return
+                  }
+
+                  toggleSelect(item.id)
+                }}
                 className={`p-4 border rounded-lg cursor-pointer transition hover:shadow-md ${
                   selectedItems.includes(item.id) ? 'border-blue-500 bg-blue-50' : ''
                 }`}
               >
                 <div className="flex flex-col items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedItems.includes(item.id)}
-                    onChange={() => toggleSelect(item.id)}
-                    onClick={e => e.stopPropagation()}
-                    className="self-start"
-                  />
+                  {canWrite && (
+                    <input
+                      type="checkbox"
+                      checked={selectedItems.includes(item.id)}
+                      onChange={() => toggleSelect(item.id)}
+                      onClick={e => e.stopPropagation()}
+                      className="self-start"
+                    />
+                  )}
                   {item.type === 0 ? (
                     <FiFolder className="text-4xl text-yellow-500" />
                   ) : (
@@ -362,6 +412,20 @@ export default function CourseFolders({ refreshKey }: CourseFoldersProps) {
             </div>
           </div>
         </div>
+      )}
+
+      {showUpload && selectedCourse && (
+        <FileUpload
+          token="public"
+          endpoint="/api/course-upload"
+          requestHeaders={{ 'X-Course-Password': coursePassword }}
+          extraBody={{ courseId: selectedCourse.id, parentId: getCurrentParentId() }}
+          onClose={() => setShowUpload(false)}
+          onComplete={() => {
+            setShowUpload(false)
+            fetchContents(getCurrentParentId())
+          }}
+        />
       )}
     </div>
   )

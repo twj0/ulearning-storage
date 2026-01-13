@@ -13,8 +13,13 @@ export default async function handler(req, res) {
   try {
     const authToken = await getAuthToken()
 
+    const adminPassword = req.headers['x-admin-password']
+    if (adminPassword !== process.env.ADMIN_PASSWORD) {
+      return res.status(401).json({ error: '管理员密码错误' })
+    }
+
     if (req.method === 'GET') {
-      const { page = 1, pageSize = 100, parentId = 0, type } = req.query
+      const { page = 1, pageSize = 100, type } = req.query
       const data = await getFileList(authToken, page, pageSize)
       
       // 过滤图片类型
@@ -29,11 +34,6 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'DELETE') {
-      const adminPassword = req.headers['x-admin-password']
-      if (adminPassword !== process.env.ADMIN_PASSWORD) {
-        return res.status(401).json({ error: '管理员密码错误' })
-      }
-
       const { contentIds } = req.body
       if (!contentIds || !Array.isArray(contentIds)) {
         return res.status(400).json({ error: '缺少 contentIds' })

@@ -22,21 +22,32 @@ interface ImgBedProps {
   refreshKey?: number
 }
 
+/**
+ * 图床组件
+ * 用于展示和管理图片资源，支持文件夹导航、图片预览、复制链接等功能
+ * @param {number} refreshKey - 用于触发组件重新渲染的key值
+ */
 export default function ImgBed({ refreshKey = 0 }: ImgBedProps) {
-  const [images, setImages] = useState<ImageItem[]>([])
-  const [folders, setFolders] = useState<FolderItem[]>([])
-  const [currentPath, setCurrentPath] = useState<{ id: number; name: string }[]>([])
-  const [loading, setLoading] = useState(true)
-  const [copiedId, setCopiedId] = useState<number | null>(null)
-  const [selectedImages, setSelectedImages] = useState<number[]>([])
-  const [showNewFolder, setShowNewFolder] = useState(false)
-  const [newFolderName, setNewFolderName] = useState('')
-  const [previewImage, setPreviewImage] = useState<ImageItem | null>(null)
 
+  // 状态管理
+  const [images, setImages] = useState<ImageItem[]>([]) // 存储图片列表
+  const [folders, setFolders] = useState<FolderItem[]>([]) // 存储文件夹列表
+  const [currentPath, setCurrentPath] = useState<{ id: number; name: string }[]>([]) // 当前路径
+  const [loading, setLoading] = useState(true) // 加载状态
+  const [copiedId, setCopiedId] = useState<number | null>(null) // 已复制的图片ID
+  const [selectedImages, setSelectedImages] = useState<number[]>([]) // 选中的图片ID列表
+  const [showNewFolder, setShowNewFolder] = useState(false) // 是否显示新建文件夹弹窗
+  const [newFolderName, setNewFolderName] = useState('') // 新建文件夹名称
+  const [previewImage, setPreviewImage] = useState<ImageItem | null>(null) // 预览的图片
+
+  // 初始化数据获取
   useEffect(() => {
     fetchData()
   }, [refreshKey, currentPath])
 
+  /**
+   * 获取图片和文件夹数据
+   */
   const fetchData = async () => {
     setLoading(true)
     try {
@@ -66,21 +77,39 @@ export default function ImgBed({ refreshKey = 0 }: ImgBedProps) {
     }
   }
 
+  /**
+   * 判断是否为图片文件
+   * @param {string} mimeType - 文件的MIME类型
+   * @returns {boolean} 是否为图片文件
+   */
   const isImageFile = (mimeType: string) => {
     return mimeType && mimeType.startsWith('image/')
   }
 
+  /**
+   * 复制链接到剪贴板
+   * @param {string} url - 图片链接
+   * @param {number} id - 图片ID
+   */
   const copyToClipboard = (url: string, id: number) => {
     navigator.clipboard.writeText(url)
     setCopiedId(id)
     setTimeout(() => setCopiedId(null), 2000)
   }
 
+  /**
+   * 处理文件夹点击事件
+   * @param {FolderItem} folder - 文件夹对象
+   */
   const handleFolderClick = (folder: FolderItem) => {
     setCurrentPath([...currentPath, { id: folder.id, name: folder.title }])
     setSelectedImages([])
   }
 
+  /**
+   * 处理面包屑导航点击
+   * @param {number} index - 点击的路径索引
+   */
   const handleBreadcrumbClick = (index: number) => {
     if (index === -1) {
       setCurrentPath([])
@@ -91,6 +120,9 @@ export default function ImgBed({ refreshKey = 0 }: ImgBedProps) {
     setSelectedImages([])
   }
 
+  /**
+   * 创建新文件夹
+   */
   const handleCreateFolder = async () => {
     if (!newFolderName.trim()) return
     try {
@@ -113,6 +145,9 @@ export default function ImgBed({ refreshKey = 0 }: ImgBedProps) {
     }
   }
 
+  /**
+   * 删除选中的图片
+   */
   const handleDelete = async () => {
     if (selectedImages.length === 0) return
     if (!confirm(`确定删除选中的 ${selectedImages.length} 个图片？`)) return
@@ -132,18 +167,28 @@ export default function ImgBed({ refreshKey = 0 }: ImgBedProps) {
     }
   }
 
+  /**
+   * 切换图片选中状态
+   * @param {number} id - 图片ID
+   */
   const toggleImageSelection = (id: number) => {
     setSelectedImages(prev =>
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     )
   }
 
+  /**
+   * 格式化文件大小
+   * @param {number} bytes - 文件大小（字节）
+   * @returns {string} 格式化后的文件大小
+   */
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + ' B'
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
     return (bytes / 1024 / 1024).toFixed(1) + ' MB'
   }
 
+  // 加载状态显示
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -155,6 +200,7 @@ export default function ImgBed({ refreshKey = 0 }: ImgBedProps) {
     )
   }
 
+  // 主界面渲染
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}

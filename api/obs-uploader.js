@@ -1,6 +1,15 @@
 import crypto from 'crypto'
 
-// 生成 AWS V4 签名
+/**
+ * 生成 AWS V4 签名
+ * @param {string} method - HTTP 请求方法
+ * @param {string} bucket - 存储桶名称
+ * @param {string} endpoint - 服务端点
+ * @param {string} remotePath - 远程路径
+ * @param {Object} tokenInfo - 包含认证信息的对象
+ * @param {string} [contentType=''] - 内容类型，默认为空字符串
+ * @returns {Object} 包含 URL 和请求头的对象
+ */
 export function generateSignature(method, bucket, endpoint, remotePath, tokenInfo, contentType = '') {
   const date = new Date()
   const amzDate = date.toISOString().replace(/[:-]|\.\d{3}/g, '')
@@ -44,7 +53,13 @@ export function generateSignature(method, bucket, endpoint, remotePath, tokenInf
   }
 }
 
-// 上传文件到 OBS
+/**
+ * 上传文件到 OBS
+ * @param {Blob|Buffer|string} file - 要上传的文件
+ * @param {string} remotePath - 文件在 OBS 上的远程路径
+ * @param {Object} tokenInfo - 包含认证信息的对象
+ * @returns {Promise<string>} 上传成功后返回文件访问 URL
+ */
 export async function uploadToOBS(file, remotePath, tokenInfo) {
   const { url, headers } = generateSignature('PUT', tokenInfo.bucket, tokenInfo.endpoint, remotePath, tokenInfo)
 

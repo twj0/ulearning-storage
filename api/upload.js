@@ -5,7 +5,7 @@ import { getAuthToken } from './lib/auth.js'
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Password')
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end()
@@ -16,6 +16,11 @@ export default async function handler(req, res) {
   }
 
   try {
+    const adminPassword = req.headers['x-admin-password']
+    if (adminPassword !== process.env.ADMIN_PASSWORD) {
+      return res.status(401).json({ error: '管理员密码错误' })
+    }
+
     const authToken = await getAuthToken()
     const { files, courseId } = req.body
     const uploaded = []

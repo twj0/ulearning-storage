@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { FiTrash2, FiCopy, FiDownload, FiRefreshCw, FiHome } from 'react-icons/fi'
+import { FiTrash2, FiCopy, FiDownload, FiRefreshCw, FiHome, FiUpload, FiSend } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
+import FileUpload from './FileUpload'
 
 interface FileItem {
   contentId: number
@@ -11,29 +12,122 @@ interface FileItem {
   createDate: number
 }
 
+interface Course {
+  id: number
+  name: string
+}
+
+/**
+ * 管理员面板组件
+ * 用于管理上传的文件，包括查看、删除和复制链接功能
+ */
 export default function AdminPanel() {
+  // 使用React Router的导航
   const navigate = useNavigate()
+  // 密码状态
   const [password, setPassword] = useState('')
+  // 认证状态
   const [authenticated, setAuthenticated] = useState(false)
+  // 文件列表状态
   const [files, setFiles] = useState<FileItem[]>([])
+  // 加载状态
   const [loading, setLoading] = useState(false)
+  // 选中的文件ID列表
   const [selected, setSelected] = useState<number[]>([])
 
+  const [courses, setCourses] = useState<Course[]>([])
+  const [selectedCourseIds, setSelectedCourseIds] = useState<number[]>([])
+  const [publishParentId, setPublishParentId] = useState(0)
+  const [publishing, setPublishing] = useState(false)
+  const [showUpload, setShowUpload] = useState(false)
+
+  /**
+   * 获取文件列表
+   * 从服务器API获取文件数据并更新状态
+   */
   const fetchFiles = async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/files')
+      const res = await fetch('/api/files', {
+        headers: { 'X-Admin-Password': password }
+      })
       const data = await res.json()
-      setFiles(data.list || [])
+      if (!res.ok) {
+        alert(data.error || '获取文件列表失败')
+        setFiles([])
+        setAuthenticated(false)
+      } else {
+        setFiles(data.list || [])
+      }
     } catch (e) {
       console.error(e)
     }
     setLoading(false)
   }
 
+  const handleLogin = async () => {
+    setAuthenticated(true)
+  }
+
   useEffect(() => {
-    if (authenticated) fetchFiles()
+    if (authenticated) {
+      fetchFiles()
+      fetchCourses()
+    }
   }, [authenticated])
+
+  const fetchCourses = async () => {
+    try {
+      const res = await fetch('/api/course-folders?action=courses')
+      const data = await res.json()
+      const courseList = data.courseList || data.result?.courseList || []
+      setCourses(courseList)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const toggleCourse = (courseId: number) => {
+    setSelectedCourseIds(prev =>
+      prev.includes(courseId) ? prev.filter(id => id !== courseId) : [...prev, courseId]
+    )
+  }
+
+  const handlePublish = async () => {
+    if (selected.length === 0) {
+      alert('请先选择要发布的库文件')
+      return
+    }
+    if (selectedCourseIds.length === 0) {
+      alert('请先选择要发布到的课程')
+      return
+    }
+
+    setPublishing(true)
+    try {
+      const res = await fetch('/api/course-folders?action=release', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Admin-Password': password },
+        body: JSON.stringify({
+          resourceIds: selected,
+          courseIds: selectedCourseIds,
+          parentId: publishParentId
+        })
+      })
+
+      if (res.ok) {
+        alert('发布成功')
+        setSelected([])
+      } else {
+        const data = await res.json().catch(() => ({}))
+        alert(data.error || '发布失败')
+      }
+    } catch (e) {
+      console.error(e)
+      alert('发布失败')
+    }
+    setPublishing(false)
+  }
 
   const handleDelete = async (ids: number[]) => {
     if (!confirm(`确定删除 ${ids.length} 个文件？`)) return
@@ -85,11 +179,11 @@ export default function AdminPanel() {
             className="w-full p-2 border rounded mb-4"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && setAuthenticated(true)}
+            onKeyDown={e => e.key === 'Enter' && handleLogin()}
           />
           <button
             className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
-            onClick={() => setAuthenticated(true)}
+            onClick={handleLogin}
           >
             登录
           </button>
@@ -110,6 +204,12 @@ export default function AdminPanel() {
             >
               <FiHome /> Home
             </button>
+            <button
+              className="flex items-center gap-1 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              onClick={() => setShowUpload(true)}
+            >
+              <FiUpload /> 上传到库
+            </button>
             {selected.length > 0 && (
               <button
                 className="flex items-center gap-1 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
@@ -124,6 +224,46 @@ export default function AdminPanel() {
             >
               <FiRefreshCw /> 刷新
             </button>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-4 mb-6">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="font-semibold">发布到课程</div>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                value={publishParentId}
+                onChange={e => setPublishParentId(Number(e.target.value) || 0)}
+                className="w-28 px-3 py-2 border rounded-lg"
+                placeholder="parentId"
+                title="课件目录 parentId（默认 0）"
+              />
+              <button
+                className="flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-60"
+                disabled={publishing || selected.length === 0 || selectedCourseIds.length === 0}
+                onClick={handlePublish}
+              >
+                <FiSend /> 发布 ({selected.length})
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            {courses.map(c => (
+              <label
+                key={c.id}
+                className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-gray-50"
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedCourseIds.includes(c.id)}
+                  onChange={() => toggleCourse(c.id)}
+                />
+                <span className="text-sm">{c.name}</span>
+              </label>
+            ))}
+            {courses.length === 0 && <div className="text-sm text-gray-500">暂无课程</div>}
           </div>
         </div>
 
@@ -197,6 +337,19 @@ export default function AdminPanel() {
           </div>
         )}
       </div>
+
+      {showUpload && (
+        <FileUpload
+          token="public"
+          endpoint="/api/upload"
+          requestHeaders={{ 'X-Admin-Password': password }}
+          onClose={() => setShowUpload(false)}
+          onComplete={() => {
+            setShowUpload(false)
+            fetchFiles()
+          }}
+        />
+      )}
     </div>
   )
 }
