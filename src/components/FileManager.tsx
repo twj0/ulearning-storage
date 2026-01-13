@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { FiUpload, FiLogOut, FiGrid, FiList, FiImage } from 'react-icons/fi'
+import { FiUpload, FiGrid, FiList, FiImage, FiSettings } from 'react-icons/fi'
+import { useNavigate } from 'react-router-dom'
 import FileUpload from './FileUpload'
 import FileList from './FileList'
 import ImageGallery from './ImageGallery'
@@ -15,6 +16,7 @@ export default function FileManager({ token, onLogout }: FileManagerProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('files')
   const [showUpload, setShowUpload] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
+  const navigate = useNavigate()
 
   const handleUploadComplete = () => {
     setShowUpload(false)
@@ -26,7 +28,7 @@ export default function FileManager({ token, onLogout }: FileManagerProps) {
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-800">云存储</h1>
+          <h1 className="text-2xl font-bold text-gray-800">ulearning-storage</h1>
 
           <div className="flex items-center gap-4">
             <button
@@ -59,10 +61,10 @@ export default function FileManager({ token, onLogout }: FileManagerProps) {
             </button>
 
             <button
-              onClick={onLogout}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center gap-2"
+              onClick={() => navigate('/admin')}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition flex items-center gap-2"
             >
-              <FiLogOut /> 退出
+              <FiSettings /> 管理员
             </button>
           </div>
         </div>
