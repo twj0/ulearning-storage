@@ -22,8 +22,12 @@
 ### 3. 配置环境变量
 在 Vercel 项目设置中添加：
 ```
-ULEARNING_USERNAME=你的优学院邮箱
-ULEARNING_PASSWORD=你的优学院密码
+ULEARNING_USERNAME=your_ulearning_email
+ULEARNING_PASSWORD=your_ulearning_password
+COURSE_IDS=153836,123456
+COURSE_PASSWORDS={"153836":"pass_for_cs","123456":"pass_for_python"}
+IMG_BED_FOLDER_NAME=图床
+ADMIN_PASSWORD=password
 ```
 
 ### 完成！
