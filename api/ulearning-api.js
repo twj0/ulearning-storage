@@ -1,4 +1,3 @@
-// 优学院 API 客户端 - Node.js 实现
 const API_BASE_URL = 'https://courseapi.ulearning.cn'
 
 // 登录获取 Token
@@ -109,4 +108,48 @@ export function buildRemotePath(filename) {
   const timestamp = Date.now()
   const ext = filename.includes('.') ? filename.substring(filename.lastIndexOf('.')) : ''
   return `resources/web/${timestamp}${ext}`
+}
+
+// 获取文件列表
+export async function getFileList(authToken, page = 1, pageSize = 100) {
+  const url = new URL(`${API_BASE_URL}/content/user/list`)
+  url.searchParams.set('pn', page)
+  url.searchParams.set('ps', pageSize)
+  url.searchParams.set('parentId', '0')
+  url.searchParams.set('viewType', '0')
+  url.searchParams.set('lang', 'zh')
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      'Authorization': authToken,
+      'Origin': 'https://courseweb.ulearning.cn',
+      'Referer': 'https://courseweb.ulearning.cn/'
+    }
+  })
+
+  if (!response.ok) {
+    throw new Error(`获取文件列表失败: ${response.status}`)
+  }
+
+  return await response.json()
+}
+
+// 删除文件
+export async function deleteFiles(authToken, contentIds) {
+  const response = await fetch(`${API_BASE_URL}/content/delete?_method=DELETE&lang=zh`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': authToken,
+      'Origin': 'https://courseweb.ulearning.cn',
+      'Referer': 'https://courseweb.ulearning.cn/'
+    },
+    body: JSON.stringify(contentIds)
+  })
+
+  if (!response.ok) {
+    throw new Error(`删除文件失败: ${response.status}`)
+  }
+
+  return true
 }

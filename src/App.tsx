@@ -1,10 +1,15 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import FileManager from './components/FileManager'
+import AdminPanel from './components/AdminPanel'
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <FileManager token="public" onLogout={() => {}} />
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<FileManager token="public" onLogout={() => {}} />} />
+        <Route path="/admin" element={<AdminPanel />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 
