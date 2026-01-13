@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react'
-import { FiUpload, FiGrid, FiList, FiImage, FiSettings } from 'react-icons/fi'
+import { FiUpload, FiGrid, FiList, FiImage, FiSettings, FiFolder } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
 import FileUpload from './FileUpload'
 import FileList from './FileList'
 import ImageGallery from './ImageGallery'
+import CourseFolders from './CourseFolders'
 
 interface FileManagerProps {
   token: string
   onLogout: () => void
 }
 
-type ViewMode = 'files' | 'gallery'
+type ViewMode = 'files' | 'gallery' | 'course'
 
 export default function FileManager({ token, onLogout }: FileManagerProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('files')
@@ -39,7 +40,18 @@ export default function FileManager({ token, onLogout }: FileManagerProps) {
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              <FiList /> 文件列表
+              <FiList /> 库
+            </button>
+
+            <button
+              onClick={() => setViewMode('course')}
+              className={`px-4 py-2 rounded-lg flex items-center gap-2 transition ${
+                viewMode === 'course'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <FiFolder /> 课件
             </button>
 
             <button
@@ -74,6 +86,8 @@ export default function FileManager({ token, onLogout }: FileManagerProps) {
       <main className="max-w-7xl mx-auto px-4 py-8">
         {viewMode === 'files' ? (
           <FileList token={token} refreshKey={refreshKey} />
+        ) : viewMode === 'course' ? (
+          <CourseFolders refreshKey={refreshKey} />
         ) : (
           <ImageGallery token={token} refreshKey={refreshKey} />
         )}
