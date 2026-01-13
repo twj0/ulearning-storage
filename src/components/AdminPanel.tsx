@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { FiTrash2, FiCopy, FiDownload, FiRefreshCw } from 'react-icons/fi'
+import { FiTrash2, FiCopy, FiDownload, FiRefreshCw, FiHome } from 'react-icons/fi'
+import { useNavigate } from 'react-router-dom'
 
 interface FileItem {
   contentId: number
@@ -11,6 +12,7 @@ interface FileItem {
 }
 
 export default function AdminPanel() {
+  const navigate = useNavigate()
   const [password, setPassword] = useState('')
   const [authenticated, setAuthenticated] = useState(false)
   const [files, setFiles] = useState<FileItem[]>([])
@@ -68,6 +70,14 @@ export default function AdminPanel() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="bg-white p-8 rounded-lg shadow-md w-80">
+          <div className="flex justify-end mb-3">
+            <button
+              className="flex items-center gap-1 px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
+              onClick={() => navigate('/')}
+            >
+              <FiHome /> Home
+            </button>
+          </div>
           <h2 className="text-xl font-bold mb-4 text-center">管理员登录</h2>
           <input
             type="password"
@@ -94,6 +104,12 @@ export default function AdminPanel() {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">文件管理</h1>
           <div className="flex gap-2">
+            <button
+              className="flex items-center gap-1 px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+              onClick={() => navigate('/')}
+            >
+              <FiHome /> Home
+            </button>
             {selected.length > 0 && (
               <button
                 className="flex items-center gap-1 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
