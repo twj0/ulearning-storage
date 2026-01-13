@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react'
 import { FiCopy, FiCheck, FiTrash2, FiFolder, FiFolderPlus, FiHome, FiChevronRight, FiZoomIn, FiDownload, FiRefreshCw } from 'react-icons/fi'
 
+/**
+ * 图片项目接口定义
+ * 定义了图片的基本属性
+ */
 interface ImageItem {
   id: number
   title: string
@@ -11,6 +15,10 @@ interface ImageItem {
   remark?: string
 }
 
+/**
+ * 文件夹项目接口定义
+ * 定义了文件夹的基本属性
+ */
 interface FolderItem {
   id: number
   title: string
@@ -18,6 +26,10 @@ interface FolderItem {
   parentId: number
 }
 
+/**
+ * 图床组件属性接口
+ * 定义了图床组件接受的属性
+ */
 interface ImgBedProps {
   refreshKey?: number
 }
@@ -25,7 +37,8 @@ interface ImgBedProps {
 /**
  * 图床组件
  * 用于展示和管理图片资源，支持文件夹导航、图片预览、复制链接等功能
- * @param {number} refreshKey - 用于触发组件重新渲染的key值
+ * @param {ImgBedProps} props - 组件属性
+ * @param {number} [props.refreshKey=0] - 用于触发组件重新渲染的key值
  */
 export default function ImgBed({ refreshKey = 0 }: ImgBedProps) {
 
@@ -47,6 +60,7 @@ export default function ImgBed({ refreshKey = 0 }: ImgBedProps) {
 
   /**
    * 获取图片和文件夹数据
+   * 从API获取当前路径下的图片和文件夹信息
    */
   const fetchData = async () => {
     setLoading(true)
@@ -57,7 +71,7 @@ export default function ImgBed({ refreshKey = 0 }: ImgBedProps) {
       const filesRes = await fetch(`/api/files?parentId=${parentId}&type=image`)
       const filesData = await filesRes.json()
       const imageFiles = (filesData.list || []).filter((item: any) => 
-        item.mimeType && item.mimeType.startsWith('image/')
+        isImageFile(item.mimeType)
       )
       setImages(imageFiles)
 
@@ -79,6 +93,7 @@ export default function ImgBed({ refreshKey = 0 }: ImgBedProps) {
 
   /**
    * 判断是否为图片文件
+   * 检查给定的MIME类型是否属于图片类型
    * @param {string} mimeType - 文件的MIME类型
    * @returns {boolean} 是否为图片文件
    */
@@ -88,8 +103,9 @@ export default function ImgBed({ refreshKey = 0 }: ImgBedProps) {
 
   /**
    * 复制链接到剪贴板
+   * 将指定图片的URL复制到系统剪贴板，并临时显示复制成功的状态
    * @param {string} url - 图片链接
-   * @param {number} id - 图片ID
+   * @param {number} id - 图片ID，用于标识复制状态
    */
   const copyToClipboard = (url: string, id: number) => {
     navigator.clipboard.writeText(url)
@@ -99,7 +115,8 @@ export default function ImgBed({ refreshKey = 0 }: ImgBedProps) {
 
   /**
    * 处理文件夹点击事件
-   * @param {FolderItem} folder - 文件夹对象
+   * 当用户点击某个文件夹时，更新当前路径并重置选中状态
+   * @param {FolderItem} folder - 被点击的文件夹对象
    */
   const handleFolderClick = (folder: FolderItem) => {
     setCurrentPath([...currentPath, { id: folder.id, name: folder.title }])
@@ -108,7 +125,8 @@ export default function ImgBed({ refreshKey = 0 }: ImgBedProps) {
 
   /**
    * 处理面包屑导航点击
-   * @param {number} index - 点击的路径索引
+   * 当用户点击面包屑导航时，跳转到指定路径层级
+   * @param {number} index - 点击的路径索引，-1表示根目录
    */
   const handleBreadcrumbClick = (index: number) => {
     if (index === -1) {
@@ -122,6 +140,7 @@ export default function ImgBed({ refreshKey = 0 }: ImgBedProps) {
 
   /**
    * 创建新文件夹
+   * 向服务器发送请求创建新文件夹，并在成功后刷新数据
    */
   const handleCreateFolder = async () => {
     if (!newFolderName.trim()) return
@@ -147,6 +166,7 @@ export default function ImgBed({ refreshKey = 0 }: ImgBedProps) {
 
   /**
    * 删除选中的图片
+   * 向服务器发送请求删除选中的图片，并在成功后刷新数据
    */
   const handleDelete = async () => {
     if (selectedImages.length === 0) return
@@ -169,7 +189,8 @@ export default function ImgBed({ refreshKey = 0 }: ImgBedProps) {
 
   /**
    * 切换图片选中状态
-   * @param {number} id - 图片ID
+   * 切换指定图片的选中/未选中状态
+   * @param {number} id - 图片的唯一标识ID
    */
   const toggleImageSelection = (id: number) => {
     setSelectedImages(prev =>
@@ -179,8 +200,9 @@ export default function ImgBed({ refreshKey = 0 }: ImgBedProps) {
 
   /**
    * 格式化文件大小
+   * 将字节数转换为人类可读的格式（B, KB, MB）
    * @param {number} bytes - 文件大小（字节）
-   * @returns {string} 格式化后的文件大小
+   * @returns {string} 格式化后的文件大小字符串
    */
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + ' B'
