@@ -1,103 +1,112 @@
-# 优学院云盘
 
-利用优学院平台的华为云 OBS 存储空间搭建的免费个人网盘，支持文件上传、图床功能。
+# Ulearning Cloud Drive
 
-## 技术平台
+[中文](./readme-zhCN.md) | **English**
 
-- **前端**：React 18 + TypeScript + Vite + TailwindCSS
-- **部署**：Vercel（免费 Serverless Functions + 静态托管）
-- **存储**：优学院平台提供的华为云 OBS（免费）
-- **认证**：优学院账号登录
+A free personal cloud drive built utilizing the Huawei Cloud OBS storage space provided by the Ulearning platform. It supports file uploads and functions as an image hosting service.
 
-## 快速部署
+## Tech Stack
 
-### 1. Fork 项目
+- **Frontend**: React 18 + TypeScript + Vite + TailwindCSS
+- **Deployment**: Vercel (Free Serverless Functions + Static Hosting)
+- **Storage**: Huawei Cloud OBS (via Ulearning platform)
+- **Authentication**: Ulearning Account Login
+
+## Quick Deployment
+
+### 1. Fork the Project
 [![Fork on GitHub](https://img.shields.io/badge/Fork-GitHub-blue?style=for-the-badge&logo=github)](https://github.com/twj0/ulearning-storage/fork)
 
-### 2. 部署到 Vercel
-1. 访问 [vercel.com](https://vercel.com) 并登录
-2. 点击 **Add New...** → **Project**
-3. 选择 Fork 的仓库，点击 **Deploy**
+### 2. Deploy to Vercel
+1. Visit [vercel.com](https://vercel.com) and log in.
+2. Click **Add New...** → **Project**.
+3. Select the repository you just forked and click **Deploy**.
 
-### 3. 配置环境变量
-在 Vercel 项目设置中添加：
-```
-ULEARNING_USERNAME=你的优学院邮箱
-ULEARNING_PASSWORD=你的优学院密码
-```
-
-### 完成！
-访问生成的 URL 即可使用。
-
-## 工作原理
-
-```
-用户 → Vercel 前端 → Vercel Functions API → 优学院 API → 华为云 OBS
+### 3. Configure Environment Variables
+Add the following variables in your Vercel project settings:
+```env
+ULEARNING_USERNAME=your_ulearning_email
+ULEARNING_PASSWORD=your_ulearning_password
+COURSE_IDS=153836,123456
+COURSE_PASSWORDS={"153836":"pass_for_cs","123456":"pass_for_python"}
+IMG_BED_FOLDER_NAME=图床
+ADMIN_PASSWORD=password
 ```
 
-1. **登录**：通过优学院 API 获取访问令牌
-2. **上传**：使用令牌调用优学院 OBS 上传接口
-3. **存储**：文件直接存储在华为云 OBS
-4. **访问**：通过优学院提供的链接访问文件
+### Done!
+Visit the generated URL to start using your cloud drive.
 
-## 二次开发
+## How It Works
 
-### 本地开发
+```
+User → Vercel Frontend → Vercel Functions API → Ulearning API → Huawei Cloud OBS
+```
+
+1. **Login**: Obtains an access token via the Ulearning API.
+2. **Upload**: Uses the token to call the Ulearning OBS upload interface.
+3. **Storage**: Files are stored directly in Huawei Cloud OBS.
+4. **Access**: Files are accessed via links provided by Ulearning.
+
+## Development
+
+### Local Setup
 ```bash
 npm install
-cp .env.example .env  # 配置优学院账号
-npm run dev           # 启动开发服务器
+cp .env.example .env  # Configure your Ulearning credentials
+npm run dev           # Start the development server
 ```
 
-### 项目结构
+### Project Structure
 ```
 api/                     # Serverless Functions
-├── lib/auth.js         # 共享认证模块
-├── login.js            # 登录接口
-├── upload.js           # 文件上传
-├── ulearning-api.js    # 优学院 API 客户端
-└── obs-uploader.js     # OBS 上传逻辑
+├── lib/auth.js         # Shared authentication module
+├── login.js            # Login interface
+├── upload.js           # File upload handling
+├── ulearning-api.js    # Ulearning API client
+└── obs-uploader.js     # OBS upload logic
 
-src/                     # React 前端
-├── components/         # UI 组件
-├── App.tsx            # 主应用
-└── main.tsx           # 入口文件
+src/                     # React Frontend
+├── components/         # UI Components
+├── App.tsx            # Main Application
+└── main.tsx           # Entry point
 ```
-### 技术要点
-- 使用 Vercel Functions 处理 API 请求
-- 通过优学院 API 获取 OBS 上传凭证
-- 前端使用 React Dropzone 实现拖拽上传
-- 支持图片直链和文件下载
 
-## 成本说明
+### Key Technical Points
+- Uses Vercel Functions to handle API requests.
+- Retrieves OBS upload credentials via the Ulearning API.
+- Frontend uses React Dropzone for drag-and-drop uploads.
+- Supports direct image links and file downloads.
 
-- **Vercel**：免费计划（10万次请求/天，100GB带宽）
-- **存储**：优学院 OBS（免费，单次最大1GB）
-- **域名**：可绑定自定义域名
+## Costs & Limits
 
-适合个人网盘、图床、小团队文件共享等场景。 
+- **Vercel**: Free Plan (100k requests/day, 100GB bandwidth).
+- **Storage**: Ulearning OBS (Free, max 1GB per single file).
+- **Domain**: Supports custom domain binding.
 
-## ⚠️ 免责声明
+Suitable for personal cloud storage, image hosting, and small team file sharing.
+
+## ⚠️ Disclaimer
 
 > [!IMPORTANT]
-> **严正声明**：本项目仅供 **技术研究与学习交流** 使用，本项目是基于优学院网页版接口分析制作的第三方开源工具，**非优学院或华为云官方产品**。本项目与优学院官方无任何关联。开发者不提供任何形式的保证。
+> **Solemn Declaration**: This project is intended for **technical research and educational purposes only**. It is a third-party open-source tool developed based on the analysis of the Ulearning web interface. It is **NOT an official product** of Ulearning or Huawei Cloud. This project has no affiliation with Ulearning official. The developer provides no guarantees of any kind.
 
-1. **仅供学习**：
-本项目仅旨在用于技术研究和编程学习。使用者应在遵守当地法律法规及优学院平台用户协议的前提下使用。请勿将本项目用于商业用途或通过其谋取非法利益。
-   - 禁止用于存储色情、暴力、政治敏感等违规文件。
-   - 禁止滥用接口进行高频请求或大规模流量分发。
+1. **Educational Use Only**:
+   This project is aimed solely at technical research and programming learning. Users must comply with local laws, regulations, and the Ulearning platform's user agreement. Do not use this project for commercial purposes or to obtain illegal benefits.
+   - It is strictly prohibited to store pornographic, violent, politically sensitive, or other violating content.
+   - It is strictly prohibited to abuse the API for high-frequency requests or large-scale traffic distribution.
+
+2. **Use at Your Own Risk**:
+   This project utilizes the free OBS storage space of the Ulearning platform.
+   - **No Data Guarantee**: The developer cannot guarantee the stability or persistence of the storage service. Please do not store important private data.
+   - **Risk of Account Ban**: Abnormal large-scale traffic or storage behavior may result in your Ulearning account being banned by the platform. Any resulting losses are your own responsibility.
    
-2. **风险自担**：
-本项目利用的是优学院平台的免费 OBS 存储空间。
-   - **数据无保障**：开发者无法保证存储服务的稳定性与持久性，请勿存储重要私人数据。
-   - **封号风险**：异常的大规模流量或存储行为可能导致您的优学院账号被平台封禁，由此造成的损失需由您自行承担。
-使用本项目产生的任何后果（包括但不限于账号被封禁、数据丢失、法律纠纷等）由使用者自行承担，开发者不承担任何责任。
+   The user assumes all consequences arising from the use of this project (including but not limited to account bans, data loss, legal disputes, etc.). The developer assumes no responsibility.
 
-3. **第三方权益**：本项目涉及的接口与存储服务归 **优学院** 及 **华为云** 所有。请遵守相关平台的服务条款。
+3. **Third-Party Rights**: The interfaces and storage services involved in this project belong to **Ulearning** and **Huawei Cloud**. Please abide by the terms of service of the relevant platforms.
 
-4. **即时停止**：如果您是相关利益方并认为本项目侵犯了您的权益，请联系作者删除，使用者也应立即停止使用。在法律允许的范围内，开发者不对因使用本项目而导致的任何直接或间接损失（包括但不限于利润损失、数据丢失、业务中断）承担责任。
+4. **Immediate Cessation**: If you are a relevant stakeholder and believe that this project infringes upon your rights, please contact the author for deletion. Users should also stop using it immediately. To the extent permitted by law, the developer is not liable for any direct or indirect losses (including but not limited to loss of profits, data loss, business interruption) caused by the use of this project.
 
-5. **知识产权**
-   本项目引用的第三方服务（优学院、华为云）的知识产权归原公司所有。
-   
-**下载或使用本项目即视为您已同意上述条款。**
+5. **Intellectual Property**:
+   The intellectual property rights of the third-party services (Ulearning, Huawei Cloud) referenced in this project belong to their respective original companies.
+
+**Downloading or using this project is deemed as your agreement to the above terms.**
